@@ -11,6 +11,7 @@ jobs:
     permissions:
       contents: write
       packages: write
+      id-token: write
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -19,6 +20,7 @@ jobs:
         uses: blue-build/github-action@v1
         with:
           recipe: 'recipe.yml'
+          cosign_private_key: "" # غیرفعال کردن امضای امنیتی برای رفع ارور
 
       - name: Upload ISO to Releases
         uses: softprops/action-gh-release@v2
@@ -31,3 +33,4 @@ jobs:
             ./output/*.iso
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
