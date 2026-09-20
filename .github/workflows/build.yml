@@ -1,4 +1,4 @@
-name: Build LMG OS
+name: Build LMG OS ISO
 on:
   push:
     branches:
@@ -6,31 +6,37 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-iso:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: write
-      id-token: write
     steps:
-      - name: Checkout Repo
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Build ISO Image via BlueBuild
-        uses: blue-build/github-action@v1
-        with:
-          recipe: 'recipe.yml'
-          cosign_private_key: "" # غیرفعال کردن امضای امنیتی برای رفع ارور
+      - name: Install Live Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y live-build debootstrap xz-utils
 
-      - name: Upload ISO to Releases
+      - name: Configure and Build ISO
+        run: |
+          mkdir lmg-build && cd lmg-build
+          lb config --distribution trixie --binary-images iso-hybrid --architectures amd64
+          
+          # افزودن پکیج‌های درخواستی لینوکس شما
+          mkdir -p config/package-lists
+          echo "xfce4 xfce4-goodies thunar xfce4-terminal firefox-esr lightdm libmtp9 mtp-tools gvfs-mtp vlc cups bluez" > config/package-lists/lmg.list.chroot
+          
+          sudo lb build
+          mv live-image-amd64.hybrid.iso ../LMG-OS-1.0.0-amd64.iso
+
+      - name: Upload ISO to GitHub Releases
         uses: softprops/action-gh-release@v2
         if: success()
         with:
           tag_name: v1.0.0
-          name: "LMG OS 1.0.0 Release"
-          files: |
-            ./*.iso
-            ./output/*.iso
+          name: "LMG OS 1.0.0 Stable Release"
+          files: LMG-OS-1.0.0-amd64.iso
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
