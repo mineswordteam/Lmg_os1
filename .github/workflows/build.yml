@@ -16,7 +16,7 @@ jobs:
 
       - name: Install BlueBuild CLI
         run: |
-          curl -fsSL https://blue-build.org | sh
+          pipx install bluebuild
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Build ISO Image
