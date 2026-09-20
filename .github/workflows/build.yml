@@ -22,7 +22,14 @@ jobs:
       - name: Configure and Build ISO
         run: |
           mkdir lmg-build && cd lmg-build
-          lb config --distribution trixie --binary-images iso-hybrid --architectures amd64
+          
+          # تنظیم دقیق آدرس مخازن رسمی دبیان برای جلوگیری از ارور اوبونتو
+          lb config --distribution trixie \
+                    --binary-images iso-hybrid \
+                    --architectures amd64 \
+                    --mirror-bootstrap "http://debian.org" \
+                    --mirror-chroot "http://debian.org" \
+                    --mirror-binary "http://debian.org"
           
           # افزودن پکیج‌های درخواستی لینوکس شما
           mkdir -p config/package-lists
