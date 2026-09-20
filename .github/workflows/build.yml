@@ -1,0 +1,34 @@
+name: Build LMG OS
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Install BlueBuild CLI
+        run: |
+          curl -fsSL https://blue-build.org | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Build ISO Image
+        run: |
+          bluebuild build recipe.yml --output ./output-iso
+
+      - name: Upload ISO to Releases
+        uses: softprops/action-gh-release@v2
+        if: success()
+        with:
+          tag_name: v1.0.0
+          name: "LMG OS 1.0.0 Release"
+          files: ./output-iso/*.iso
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
