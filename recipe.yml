@@ -1,0 +1,101 @@
+# LMG OS 1.0.0 — Complete Operating System Configuration
+# Based on Debian 13 (Trixie) x86-64 with XFCE Desktop Environment
+# Made by MineswordTeam
+
+name: lmg-os
+description: Logic Mind Grid OS - Neon Blue Dark Aesthetic
+base-image: debian:trixie
+architecture: amd64
+version: 1.0.0
+
+# 1. بخش ظاهری و هویت بصری (Visual Identity)
+branding:
+  developer: "MineswordTeam"
+  desktop-environment: "xfce"
+  theme:
+    gtk-theme: "Arc-Dark" # یک تم پایه تاریک مناسب برای شخصی‌سازی نئون
+    icon-theme: "Papirus-Dark"
+    cursor-theme: "Breeze"
+  wallpaper:
+    default: "https://githubusercontent.com" # اینجا بعداً آدرس والپیپر کوهستان و شفق قطبی خود را بگذارید
+
+# 2. پکیج‌های پیش‌فرض و ضروری سیستم بدون نیاز به ترمینال (Bundled Packages)
+packages:
+  # هسته و درایورهای پایه
+  - linux-image-amd64
+  - firmware-linux-nonfree
+  - xorg
+  - lightdm # صفحه لاگین تم‌دار لینوکس
+  
+  # میزکار XFCE و ابزارهای مدیریت پنل
+  - xfce4
+  - xfce4-goodies
+  - thunar # مدیریت فایل
+  - xfce4-terminal # ترمینال اختصاصی
+  - xfce4-settings # تنظیمات سیستم
+  
+  # اتصال موبایل و دوربین روی کابل USB (MTP/PTP)
+  - libmtp9
+  - mtp-tools
+  - gvfs-mtp
+  - jmtpfs
+  - gvfs-backends
+  - usbutils
+  
+  # ابزارهای فشرده‌سازی کامل فایل‌ها
+  - unzip
+  - zip
+  - unrar-free
+  - p7zip-full
+  - tar
+  - gzip
+  - bzip2
+  - xz-utils
+  
+  # کداک‌های مالتی‌مدیا و پلیرها برای پخش بدون دردسر فیلم و صدا
+  - ffmpeg
+  - gstreamer1.0-plugins-good
+  - gstreamer1.0-plugins-bad
+  - gstreamer1.0-plugins-ugly
+  - gstreamer1.0-libav
+  - vlc # ویدیو پلیر همه فن حریف
+  
+  # اجرای برنامه‌های آفیس، PDF و تصاویر
+  - evince # نمایشگر PDF
+  - ristretto # نمایشگر تصویر سریع
+  - libreoffice-calc
+  - libreoffice-writer
+  
+  # سرویس‌های اتصال سخت‌افزاری (پرینتر و بلوتوث)
+  - cups
+  - cups-filters
+  - bluez
+  - blueman # مدیریت گرافیکی بلوتوث
+  
+  # مرورگر اینترنت پایه
+  - firefox-esr
+  
+  # پیش‌نیاز ابزار گیمینگ LMG Gaming و واین
+  - wine
+  - winetricks
+  - python3-pip
+  - python3-psutil # برای مانیتورینگ رم و سی‌پی‌یو ابزارها
+
+# 3. بهینه‌سازی عملکرد و کانفیگ‌های سیستمی (Performance Target)
+configuration:
+  # تضمین مصرف رم زیر ۱ گیگابایت در حالت بیکار
+  disable-services:
+    - bluetooth.service # لود اولیه غیرفعال، اجرای دستی موقع نیاز
+    - cups.service
+  
+  # اعمال اسکریپت‌های کاستوم برای تسک‌بار ویندوزی و سایدبار
+  custom-scripts:
+    - |
+      #!/bin/bash
+      # تنظیم چینش تسک‌بار در پایین صفحه و اضافه کردن ۴ نرم‌افزار پین شده
+      xfconf-query -c xfce4-panel -p /panels/panel-1/position -s "phtmlH"
+      xfconf-query -c xfce4-panel -p /panels/panel-1/size -s 40
+      
+      # آماده‌سازی دایرکتوری برنامه‌های اختصاصی LMG
+      mkdir -p /opt/lmg-tools/
+      
