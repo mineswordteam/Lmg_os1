@@ -19,25 +19,26 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y genisoimage squashfs-tools syslinux-utils wget xorriso
 
-      - name: Download and Process Official Debian 13.7
+      - name: Download and Process Official Debian 13
         run: |
-          # ۱. دانلود مستقیم فایل خام دبیان ۱۳.۷ از لینک ارسالی شما
+          # ۱. دانلود فایل واقعی دبیان ۱۳ از مخازن هفتگی رسمی
           wget -O debian-raw.iso https://debian.org
           
-          # ۲. استخراج فایل‌های ISO با ابزار مناسب
+          # ۲. استخراج فایل‌های ISO
           mkdir -p iso-extract
           xorriso -osirrox on -indev debian-raw.iso -extract / iso-extract
           chmod -R +w iso-extract
           
-          # ۳. تزریق اسکریپت‌های پکیج‌های درخواستی سند LMG OS
+          # ۳. تزریق پکیج‌های درخواستی LMG OS
           mkdir -p iso-extract/install
           echo "xfce4 xfce4-goodies thunar firefox-esr vlc libmtp9 mtp-tools gvfs-mtp cups bluez" > iso-extract/install/lmg_packages.txt
 
-          # ۴. رندر و بازسازی فایل ISO نهایی
-          sudo mkisofs -o LMG-OS-1.0.0-amd64.iso \
+          # ۴. ساخت دایرکتوری بوت و رندر نهایی فایل ISO
+          cd iso-extract
+          sudo mkisofs -o ../LMG-OS-1.0.0-amd64.iso \
             -b isolinux/isolinux.bin -c isolinux/boot.cat \
             -no-emul-boot -boot-load-size 4 -boot-info-table \
-            -R -J -v iso-extract/
+            -R -J -v .
             
       - name: Upload ISO to GitHub Releases
         uses: softprops/action-gh-release@v2
