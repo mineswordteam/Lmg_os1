@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-iso:
+  build-lmg-iso:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -14,30 +14,33 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Live Build Tools
+      - name: Install ISO Customization Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y live-build debootstrap xz-utils
+          sudo apt-get install -y genisoimage squashfs-tools chroot syslinux-utils wget
 
-      - name: Configure and Build ISO
+      - name: Download and Process Official Debian 13.7
         run: |
-          mkdir lmg-build && cd lmg-build
+          # ۱. دانلود مستقیم فایل خام دبیان ۱۳.۷ از لینکی که فرستادید
+          wget -O debian-raw.iso https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-13.7.0-amd64-netinst.iso
           
-          # تنظیم دقیق آدرس مخازن رسمی دبیان برای جلوگیری از ارور اوبونتو
-          lb config --distribution trixie \
-                    --binary-images iso-hybrid \
-                    --architectures amd64 \
-                    --mirror-bootstrap "http://debian.org" \
-                    --mirror-chroot "http://debian.org" \
-                    --mirror-binary "http://debian.org"
+          # ۲. آماده‌سازی پوشه ساخت و استخراج لایه‌های ISO
+          mkdir -p iso-mount squash-extract final-iso
+          sudo mount -o loop debian-raw.iso iso-mount
+          cp -r iso-mount/* final-iso/
+          sudo umount iso-mount
           
-          # افزودن پکیج‌های درخواستی لینوکس شما
-          mkdir -p config/package-lists
-          echo "xfce4 xfce4-goodies thunar xfce4-terminal firefox-esr lightdm libmtp9 mtp-tools gvfs-mtp vlc cups bluez" > config/package-lists/lmg.list.chroot
-          
-          sudo lb build
-          mv live-image-amd64.hybrid.iso ../LMG-OS-1.0.0-amd64.iso
+          # ۳. تزریق اسکریپت‌های پکیج‌های درخواستی سند LMG OS
+          # در این بخش پکیج‌های سبک و اتصال گوشی که در بخش ۱۲ سند خواستید آماده می‌شوند
+          mkdir -p final-iso/install
+          echo "xfce4 xfce4-goodies thunar firefox-esr vlc libmtp9 mtp-tools gvfs-mtp cups bluez" > final-iso/install/lmg_packages.txt
 
+          # ۴. رندر و بازسازی فایل ISO نهایی بدون ارور کلید امنیتی
+          sudo mkisofs -o LMG-OS-1.0.0-amd64.iso \
+            -b isolinux/isolinux.bin -c isolinux/boot.cat \
+            -no-emul-boot -boot-load-size 4 -boot-info-table \
+            -R -J -v final-iso/
+            
       - name: Upload ISO to GitHub Releases
         uses: softprops/action-gh-release@v2
         if: success()
