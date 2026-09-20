@@ -10,18 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: write
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Install BlueBuild CLI
-        run: |
-          pipx install bluebuild
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Build ISO Image
-        run: |
-          bluebuild build recipe.yml --output ./output-iso
+      - name: Build ISO Image via BlueBuild
+        uses: blue-build/github-action@v1
+        with:
+          recipe: 'recipe.yml'
 
       - name: Upload ISO to Releases
         uses: softprops/action-gh-release@v2
@@ -29,6 +26,8 @@ jobs:
         with:
           tag_name: v1.0.0
           name: "LMG OS 1.0.0 Release"
-          files: ./output-iso/*.iso
+          files: |
+            ./*.iso
+            ./output/*.iso
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
