@@ -17,29 +17,27 @@ jobs:
       - name: Install ISO Customization Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y genisoimage squashfs-tools chroot syslinux-utils wget
+          sudo apt-get install -y genisoimage squashfs-tools syslinux-utils wget xorriso
 
       - name: Download and Process Official Debian 13.7
         run: |
-          # ۱. دانلود مستقیم فایل خام دبیان ۱۳.۷ از لینکی که فرستادید
-          wget -O debian-raw.iso https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-13.7.0-amd64-netinst.iso
+          # ۱. دانلود مستقیم فایل خام دبیان ۱۳.۷ از لینک ارسالی شما
+          wget -O debian-raw.iso https://debian.org
           
-          # ۲. آماده‌سازی پوشه ساخت و استخراج لایه‌های ISO
-          mkdir -p iso-mount squash-extract final-iso
-          sudo mount -o loop debian-raw.iso iso-mount
-          cp -r iso-mount/* final-iso/
-          sudo umount iso-mount
+          # ۲. استخراج فایل‌های ISO با ابزار مناسب
+          mkdir -p iso-extract
+          xorriso -osirrox on -indev debian-raw.iso -extract / iso-extract
+          chmod -R +w iso-extract
           
           # ۳. تزریق اسکریپت‌های پکیج‌های درخواستی سند LMG OS
-          # در این بخش پکیج‌های سبک و اتصال گوشی که در بخش ۱۲ سند خواستید آماده می‌شوند
-          mkdir -p final-iso/install
-          echo "xfce4 xfce4-goodies thunar firefox-esr vlc libmtp9 mtp-tools gvfs-mtp cups bluez" > final-iso/install/lmg_packages.txt
+          mkdir -p iso-extract/install
+          echo "xfce4 xfce4-goodies thunar firefox-esr vlc libmtp9 mtp-tools gvfs-mtp cups bluez" > iso-extract/install/lmg_packages.txt
 
-          # ۴. رندر و بازسازی فایل ISO نهایی بدون ارور کلید امنیتی
+          # ۴. رندر و بازسازی فایل ISO نهایی
           sudo mkisofs -o LMG-OS-1.0.0-amd64.iso \
             -b isolinux/isolinux.bin -c isolinux/boot.cat \
             -no-emul-boot -boot-load-size 4 -boot-info-table \
-            -R -J -v final-iso/
+            -R -J -v iso-extract/
             
       - name: Upload ISO to GitHub Releases
         uses: softprops/action-gh-release@v2
